@@ -50,8 +50,9 @@ public class Controller {
         //host = CDDL.startMicroBroker();
         //host = "broker.mqttdashboard.com";
         //host = "test.mosquitto.org";
+        host = "broker.hivemq.com";
         con = ConnectionFactory.createConnection();
-        con.setClientId("lucas.silva");
+        con.setClientId("lucasalves");
         //con.setHost(host);
         con.setHost(Connection.DEFAULT_HOST);
         con.addConnectionListener(connectionListener);
@@ -59,9 +60,9 @@ public class Controller {
 
         cddl = CDDL.getInstance();
         cddl.setConnection(con);
-        cddl.setContext(context);
+        //cddl.setContext(context);
         cddl.startService();
-        cddl.startCommunicationTechnology(CDDL.INTERNAL_TECHNOLOGY_ID);
+        //cddl.startCommunicationTechnology(CDDL.INTERNAL_TECHNOLOGY_ID);
 
         createPublish();
     }

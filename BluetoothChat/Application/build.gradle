@@ -33,4 +33,5 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation fileTree(dir: 'C:\\Users\\lukaz\\Downloads', include: ['*.aar', '*.jar'], exclude: [])
 }
