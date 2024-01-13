@@ -17,19 +17,57 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
+    compileSdk 33
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 29
+        minSdkVersion 27
+        //noinspection EditedTargetSdkVersion,ExpiredTargetSdkVersion
+        targetSdkVersion 33
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
     }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/io.netty.versions.properties'
+    }
+    namespace 'com.example.android.bluetoothchat'
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
+
+    //implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.1'
+    //implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
+    implementation 'org.greenrobot:eventbus:3.1.1'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+
+    //implementation 'io.netty:netty-all:4.0.25.Final'
+    //implementation 'org.mapdb:mapdb:1.0.6'
+    //implementation 'com.lmax:disruptor:3.3.0'
+
+    // needed by CDDL
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.2'
+    implementation 'com.google.android.gms:play-services-location:19.0.1'
+    implementation 'org.apache.commons:commons-lang3:3.5'
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    // needed by Microbroker
+    implementation 'io.netty:netty-all:5.0.0.Alpha2'
+
+    // needed by Security Service
+    implementation 'com.madgag.spongycastle:core:1.51.0.0'
+    implementation 'com.madgag.spongycastle:pkix:1.51.0.0'
+
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+
+    implementation 'com.madgag.spongycastle:core:1.51.0.0'
+    implementation 'com.madgag.spongycastle:pkix:1.51.0.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
+    implementation fileTree(dir: 'C:\\Users\\lukaz\\UFMA\\Projetos\\TCC\\CLIENTE', include: ['*.aar', '*.jar'], exclude: [])
+
+
 }

@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
+import androidx.fragment.app.FragmentActivity;
 import com.example.android.common.logger.Log;
 
 import java.io.IOException;
@@ -39,6 +40,9 @@ import java.util.UUID;
  * thread for performing data transmissions when connected.
  */
 public class BluetoothChatService {
+
+    private static BluetoothChatService btChatService = null;
+
     // Debugging
     private static final String TAG = "BluetoothChatService";
 
@@ -46,15 +50,21 @@ public class BluetoothChatService {
     private static final String NAME_SECURE = "BluetoothChatSecure";
     private static final String NAME_INSECURE = "BluetoothChatInsecure";
 
-    // Unique UUID for this application
+    private static BluetoothChatService instance;
+
+    //public static BluetoothChatService getInstance() {
+    //    return instance;
+    //}
+
+    //UUID for HC-05
     private static final UUID MY_UUID_SECURE =
-            UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+            UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     private static final UUID MY_UUID_INSECURE =
-            UUID.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66");
+            UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
     // Member fields
     private final BluetoothAdapter mAdapter;
-    private final Handler mHandler;
+    private  Handler mHandler;
     private AcceptThread mSecureAcceptThread;
     private AcceptThread mInsecureAcceptThread;
     private ConnectThread mConnectThread;
@@ -79,6 +89,25 @@ public class BluetoothChatService {
         mState = STATE_NONE;
         mNewState = mState;
         mHandler = handler;
+    }
+
+    private BluetoothChatService() {
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mState = STATE_NONE;
+        mNewState = mState;
+    }
+
+    public static BluetoothChatService getInstance() {
+        if(instance==null){
+            instance = new BluetoothChatService();
+        }
+        return instance;
+    }
+    public void setContext(FragmentActivity activity){
+    }
+
+    public void setmHandler(Handler mHandler){
+        this.mHandler = mHandler;
     }
 
     /**
@@ -160,6 +189,7 @@ public class BluetoothChatService {
         mConnectThread.start();
         // Update UI title
         updateUserInterfaceTitle();
+
     }
 
     /**
@@ -496,7 +526,8 @@ public class BluetoothChatService {
                     // Send the obtained bytes to the UI Activity
                     mHandler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
-                } catch (IOException e) {
+                }
+                catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
                     connectionLost();
                     break;

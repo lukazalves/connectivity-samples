@@ -20,6 +20,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,6 +47,14 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.example.android.common.logger.Log;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import br.ufma.lsdi.cddl.CDDL;
+
+import br.ufma.lsdi.cddl.pubsub.Subscriber;
+import br.ufma.lsdi.cddl.pubsub.SubscriberFactory;
+
 /**
  * This fragment controls Bluetooth to communicate with other devices.
  */
@@ -62,6 +71,14 @@ public class BluetoothChatFragment extends Fragment {
     private ListView mConversationView;
     private EditText mOutEditText;
     private Button mSendButton;
+
+    //Use CDDL
+    Controller controller, answerController;
+    private Subscriber subscriber;
+    private CDDL cddl;
+    //Check checkCard;
+    EventBus eventBus;
+
 
     /**
      * Name of the connected device
@@ -94,6 +111,21 @@ public class BluetoothChatFragment extends Fragment {
         setHasOptionsMenu(true);
         // Get local Bluetooth adapter
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        //Controllers de envio e recebimento de mensagem
+        controller = Controller.getInstance();
+        answerController = Controller.getInstance();
+
+        //controller.initCDDL(getActivity().getApplicationContext());
+        //answerController.initCDDL(getActivity().getApplicationContext());
+
+        //para publicação da leitura recebida via bluetooth
+        controller.subscribeService("leitura-rfid");
+        controller.listenerMessage();
+
+        //para envio via bluetooth da resposta recebida do servidor
+        answerController.subscribeService("resposta-controle");
+        answerController.listenerMessage();
 
         // If the adapter is null, then Bluetooth is not supported
         FragmentActivity activity = getActivity();
@@ -188,8 +220,11 @@ public class BluetoothChatFragment extends Fragment {
             }
         });
 
-        // Initialize the BluetoothChatService to perform bluetooth connections
-        mChatService = new BluetoothChatService(activity, mHandler);
+        //Initialize the BluetoothChatService to perform bluetooth connections
+        //mChatService = new BluetoothChatService(activity, mHandler);
+        mChatService = BluetoothChatService.getInstance();
+        mChatService.setContext(activity);
+        mChatService.setmHandler(mHandler);
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer();
@@ -314,6 +349,9 @@ public class BluetoothChatFragment extends Fragment {
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
                     mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+                    controller.publishMessage(readMessage,"leitura-rfid");
+                    Log.d("Publicação: ", readMessage);
+                    mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -353,7 +391,7 @@ public class BluetoothChatFragment extends Fragment {
                     // Bluetooth is now enabled, so set up a chat session
                     setupChat();
                 } else {
-                    // User did not enable Bluetooth or an error occurred
+                    // Usuario did not enable Bluetooth or an error occurred
                     Log.d(TAG, "BT not enabled");
                     FragmentActivity activity = getActivity();
                     if (activity != null) {
@@ -412,5 +450,5 @@ public class BluetoothChatFragment extends Fragment {
         }
         return false;
     }
-
 }
+
