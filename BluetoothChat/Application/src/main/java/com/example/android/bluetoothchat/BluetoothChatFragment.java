@@ -16,12 +16,14 @@
 
 package com.example.android.bluetoothchat;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
+
 import android.content.Intent;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -39,21 +41,12 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-
 import com.example.android.common.logger.Log;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-import br.ufma.lsdi.cddl.CDDL;
-
-import br.ufma.lsdi.cddl.pubsub.Subscriber;
-import br.ufma.lsdi.cddl.pubsub.SubscriberFactory;
 
 /**
  * This fragment controls Bluetooth to communicate with other devices.
@@ -74,11 +67,6 @@ public class BluetoothChatFragment extends Fragment {
 
     //Use CDDL
     Controller controller, answerController;
-    private Subscriber subscriber;
-    private CDDL cddl;
-    //Check checkCard;
-    EventBus eventBus;
-
 
     /**
      * Name of the connected device
@@ -116,9 +104,6 @@ public class BluetoothChatFragment extends Fragment {
         controller = Controller.getInstance();
         answerController = Controller.getInstance();
 
-        //controller.initCDDL(getActivity().getApplicationContext());
-        //answerController.initCDDL(getActivity().getApplicationContext());
-
         //para publicação da leitura recebida via bluetooth
         controller.subscribeService("leitura-rfid");
         controller.listenerMessage();
@@ -126,6 +111,7 @@ public class BluetoothChatFragment extends Fragment {
         //para envio via bluetooth da resposta recebida do servidor
         answerController.subscribeService("resposta-controle");
         answerController.listenerMessage();
+
 
         // If the adapter is null, then Bluetooth is not supported
         FragmentActivity activity = getActivity();
@@ -223,16 +209,13 @@ public class BluetoothChatFragment extends Fragment {
         //Initialize the BluetoothChatService to perform bluetooth connections
         //mChatService = new BluetoothChatService(activity, mHandler);
         mChatService = BluetoothChatService.getInstance();
-        mChatService.setContext(activity);
         mChatService.setmHandler(mHandler);
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer();
     }
 
-    /**
-     * Makes this device discoverable for 300 seconds (5 minutes).
-     */
+    @SuppressLint("MissingPermission")
     private void ensureDiscoverable() {
         if (mBluetoothAdapter.getScanMode() !=
                 BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
@@ -241,6 +224,7 @@ public class BluetoothChatFragment extends Fragment {
             startActivity(discoverableIntent);
         }
     }
+
 
     /**
      * Sends a message.
@@ -342,16 +326,14 @@ public class BluetoothChatFragment extends Fragment {
                     byte[] writeBuf = (byte[]) msg.obj;
                     // construct a string from the buffer
                     String writeMessage = new String(writeBuf);
-                    mConversationArrayAdapter.add("Me:  " + writeMessage);
+                    mConversationArrayAdapter.add("Me:  " +writeMessage);
                     break;
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
                     controller.publishMessage(readMessage,"leitura-rfid");
-                    Log.d("Publicação: ", readMessage);
-                    mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+                    mConversationArrayAdapter.add(mConnectedDeviceName + ":  " +readMessage);
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name

@@ -18,9 +18,10 @@ package com.example.android.bluetoothchat;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -41,8 +42,6 @@ import java.util.UUID;
  */
 public class BluetoothChatService {
 
-    private static BluetoothChatService btChatService = null;
-
     // Debugging
     private static final String TAG = "BluetoothChatService";
 
@@ -52,10 +51,6 @@ public class BluetoothChatService {
 
     private static BluetoothChatService instance;
 
-    //public static BluetoothChatService getInstance() {
-    //    return instance;
-    //}
-
     //UUID for HC-05
     private static final UUID MY_UUID_SECURE =
             UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
@@ -64,6 +59,9 @@ public class BluetoothChatService {
 
     // Member fields
     private final BluetoothAdapter mAdapter;
+
+    public BluetoothManager bluetoothManager;
+
     private  Handler mHandler;
     private AcceptThread mSecureAcceptThread;
     private AcceptThread mInsecureAcceptThread;
@@ -81,18 +79,15 @@ public class BluetoothChatService {
     /**
      * Constructor. Prepares a new BluetoothChat session.
      *
-     * @param context The UI Activity Context
-     * @param handler A Handler to send messages back to the UI Activity
      */
-    public BluetoothChatService(Context context, Handler handler) {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mState = STATE_NONE;
-        mNewState = mState;
-        mHandler = handler;
-    }
 
     private BluetoothChatService() {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothManager = MainActivity.getBluetoothManager();
+        if(Build.VERSION.SDK_INT>=31){
+            mAdapter = bluetoothManager.getAdapter();
+        }else{
+            mAdapter = BluetoothAdapter.getDefaultAdapter();
+        }
         mState = STATE_NONE;
         mNewState = mState;
     }
@@ -102,8 +97,6 @@ public class BluetoothChatService {
             instance = new BluetoothChatService();
         }
         return instance;
-    }
-    public void setContext(FragmentActivity activity){
     }
 
     public void setmHandler(Handler mHandler){

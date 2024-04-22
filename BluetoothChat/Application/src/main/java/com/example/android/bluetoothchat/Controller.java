@@ -1,11 +1,9 @@
 package com.example.android.bluetoothchat;
 
 import android.content.Context;
-import android.os.Handler;
 
 import com.example.android.common.logger.Log;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -25,25 +23,20 @@ public class Controller {
     private static final Controller instance = new Controller();
 
     private Publisher publisher;
-    private Message message;
 
     public Controller (){
     }
 
-    public Controller(Context context) {
-        initCDDL(context);
-    }
-
     public static Controller getInstance() {
-       return instance;
+        return instance;
     }
 
     //Variaveis para uso do CDDL
-    private ConnectionImpl con;
-    private String host;
+    protected ConnectionImpl con;
+    protected String host;
     private CDDL cddl;
     private Subscriber subscriber;
-    private EventBus eventBus;
+    //private EventBus eventBus;
     BluetoothChatService btChat;
 
     public void initCDDL(Context context) {
@@ -64,7 +57,7 @@ public class Controller {
     }
 
 
-    private IConnectionListener connectionListener = new IConnectionListener() {
+    private final IConnectionListener connectionListener = new IConnectionListener() {
 
         @Override
         public void onConnectionEstablished() {
@@ -94,12 +87,12 @@ public class Controller {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void on(String message){
-        Log.d("Chegou Mensagem", "resposta-controle");
+        Log.i("Chegou Mensagem", "resposta-controle");
         addLogOnView(message);
     }
 
-    public void publishMessage(String uuid, String serviceName) {
-        message = new Message();
+    protected void publishMessage(String uuid, String serviceName) {
+        Message message = new Message();
         message.setServiceName(serviceName);
         message.setServiceValue(uuid);
         publisher.publish(message);
@@ -111,18 +104,19 @@ public class Controller {
     }
 
     public void listenerMessage() {
-
         subscriber.setSubscriberListener(new ISubscriberListener() {
             @Override
             public void onMessageArrived(Message message) {
-                eventBus.post(message);
-                Log.d("resposta " , message.getServiceValue()[0].toString());
+                //eventBus.post(message);
+                Log.d("resposta " , message.getAvailableAttributesList()[0]);
                 btChat = BluetoothChatService.getInstance();
-                String resposta = message.getServiceValue()[0].toString();
+                String resposta = message.getAvailableAttributesList()[0];
                 btChat.write(resposta.getBytes());
             }
         });
     }
+
+
 
     public void subscribeService(String serviceName){
         subscriber = SubscriberFactory.createSubscriber();
